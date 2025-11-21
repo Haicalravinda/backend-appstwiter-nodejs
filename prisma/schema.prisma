@@ -1,0 +1,41 @@
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  posts        Post[]
+  // Relasi Follow (Many-to-Many Self Relation)
+  followers    Follow[] @relation("UserFollowers")
+  following    Follow[] @relation("UserFollowing")
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Follow {
+  followerId Int
+  followeeId Int
+  createdAt  DateTime @default(now())
+
+  follower   User     @relation("UserFollowing", fields: [followerId], references: [id])
+  followee   User     @relation("UserFollowers", fields: [followeeId], references: [id])
+
+  @@id([followerId, followeeId]) // Composite Primary Key
+}
